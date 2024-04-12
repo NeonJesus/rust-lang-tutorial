@@ -1,4 +1,6 @@
 use clap::Parser;
+use anyhow::{Context, Result};
+use grrs::find_matches;
 
 #[derive(Parser)]
 struct Cli {
@@ -8,7 +10,7 @@ struct Cli {
     path: std::path::PathBuf,
 }
 
-fn main() {
+fn main() -> Result<()>{
     // let pattern = std::env::args().nth(1).expect("no pattern given");
     // let path = std::env::args().nth(2).expect("no path given");
 
@@ -16,12 +18,10 @@ fn main() {
 
     // println!("pattern: {:?}, path {:?}", args.pattern, args.path)
 
-    let content = std::fs::read_to_string(&args.path).expect("could not read file");
+    let content = std::fs::read_to_string(&args.path)
+        .with_context(|| format!("could not read file `{}`", args.path.display()))?;
 
-    for line in content.lines() {
-        if line.contains(&args.pattern) {
-            println!("{}", line);
-        }
-    }
+    find_matches(&content, &args.pattern, &mut std::io::stdout());
+    Ok(())
 
 }
